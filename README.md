@@ -83,3 +83,59 @@ PORT=3000
 # Allowlist optionnelle
 SMTP_HOST_ALLOWLIST=smtp.gmail.com,smtp.office365.com
 ```
+
+---
+
+## 🐳 Docker (Recommandé)
+
+### Démarrer
+```bash
+docker compose up -d
+```
+
+### Arrêter
+```bash
+docker compose down
+```
+
+
+### Voir les logs
+```bash
+docker compose logs -f
+```
+
+---
+
+## 🧪 Tester l'API (PowerShell)
+
+Copiez-collez ce bloc dans votre terminal PowerShell pour tester l'envoi d'un mail :
+
+```powershell
+$headers = @{ "x-api-key" = "test-secret-key-123"; "Content-Type" = "application/json" }
+$body = @{
+    smtp = @{
+        host = "smtp.example.com"
+        port = 587
+        user = "test_user"
+        pass = "test_pass"
+    }
+    mail = @{
+        from = "me@example.com"
+        to = "you@example.com"
+        subject = "Test API"
+        text = "Ceci est un test"
+    }
+} | ConvertTo-Json -Depth 5
+
+try {
+    $response = Invoke-RestMethod -Uri "http://localhost:3000/send" -Method Post -Headers $headers -Body $body
+    Write-Host "Succès : " $response
+} catch {
+    # Affiche l'erreur retournée par l'API (ex: mauvais SMTP) au lieu de l'erreur PowerShell standard
+    $errorJson = $_.Exception.Response.GetResponseStream()
+    $reader = New-Object System.IO.StreamReader($errorJson)
+    $responseBody = $reader.ReadToEnd()
+    Write-Host "Réponse API (Erreur attendue si SMTP fictif) : $responseBody" -ForegroundColor Yellow
+}
+
+```
